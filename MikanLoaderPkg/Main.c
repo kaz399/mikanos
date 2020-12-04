@@ -152,6 +152,7 @@ EFI_STATUS EFIAPI UefiMain(
   // #@@range_end(read_kernel)
 
   // #@@range_begin(exit_bs)
+#if 0
   EFI_STATUS status;
   status = gBS->ExitBootServices(image_handle, memmap.map_key);
   if (EFI_ERROR(status)) {
@@ -166,17 +167,20 @@ EFI_STATUS EFIAPI UefiMain(
       while (1);
     }
   }
+#endif
   // #@@range_end(exit_bs)
 
   // #@@range_begin(call_kernel)
   UINT64 entry_addr = *(UINT64*)(kernel_base_addr + 24);
 
-  typedef void EntryPointType(void);
+  typedef UINT64 EntryPointType(void);
   EntryPointType* entry_point = (EntryPointType*)entry_addr;
-  entry_point();
+
+  UINT64 ret_val = 0;
+  ret_val = entry_point();
   // #@@range_end(call_kernel)
 
-  Print(L"All done\n");
+  Print(L"All done %lu\n", ret_val);
 
   while (1);
   return EFI_SUCCESS;
