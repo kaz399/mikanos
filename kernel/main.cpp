@@ -25,6 +25,37 @@ void operator delete(void* obj) noexcept {
 char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 PixelWriter* pixel_writer;
 
+class Console
+{
+    private:
+        PixelWriter *writer;
+        int x;
+        int y;
+
+    public:
+        Console(PixelWriter *w) {
+            writer = w;
+            x = 0;
+            y = 0;
+        }
+
+        int puts(const char *str) {
+            if (writer == 0) {
+                return -1;
+            }
+            while (*str != '0') {
+                WriteAscii(*writer, 8 * x, 9 * y, *str, {0, 0, 0});
+                x++;
+                str++;
+                if (x > 20) break;
+            }
+            x = 0;
+            y++;
+            return y;
+        }
+};
+
+
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   switch (frame_buffer_config.pixel_format) {
     case kPixelRGBResv8BitPerColor:
@@ -58,6 +89,10 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   for (char c = '!'; c <= '~'; ++c, ++i) {
     WriteAscii(*pixel_writer, 8 * i, 50, c, {0, 0, 0});
   }
+  Console cnsl = Console(pixel_writer);
+  cnsl.puts("Hello world!");
+  cnsl.puts("0001 Hello world!");
+
   // #@@range_end(write_fonts)
   while (1) __asm__("hlt");
 }
