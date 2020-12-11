@@ -28,36 +28,36 @@ PixelWriter* pixel_writer;
 class Console
 {
     private:
-        PixelWriter *writer;
-        int x;
-        int y;
-        const int l_margine = 3;
-        const int line_spacing = 3;
+        PixelWriter *writer_;
+        int x_;
+        int y_;
+        const int left_margine = 10;
+        const int top_margine = 10;
+        const int line_spacing = 4;
+        const int letter_spacing = 2;
+        const int char_width = 8;
         const int char_height = 16;
 
     public:
-        Console(PixelWriter *w) {
-            writer = w;
-            x = 0;
-            y = 0;
+        Console(PixelWriter *w): writer_(w), x_(0), y_(0) {
         }
 
         int puts(const char *str) {
-            if (writer == 0) {
+            if (writer_ == 0) {
                 return -1;
             }
             while (*str != '\0') {
-                WriteAscii(*writer,
-                        l_margine + (8 * x),
-                        (char_height + line_spacing) * y,
+                WriteAscii(*writer_,
+                        left_margine + ((char_width + letter_spacing) * x_),
+                        top_margine + ((char_height + line_spacing) * y_),
                         *str,
                         {0, 0, 0});
-                x++;
+                x_++;
                 str++;
             }
-            x = 0;
-            y++;
-            return y;
+            x_ = 0;
+            y_++;
+            return y_;
         }
 };
 
@@ -82,20 +82,22 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
     }
   }
   const uint8_t *data = x86_img.data;
+  const int offset_x = (frame_buffer_config.horizontal_resolution - x86_img.w) / 2;
+  const int offset_y = (frame_buffer_config.vertical_resolution - x86_img.h) / 2;
   for (int y = 0; y < x86_img.h; ++y) {
     for (int x = 0; x < x86_img.w; ++x) {
       uint8_t b = data[0];
       uint8_t g = data[1];
       uint8_t r = data[2];
       data += 4;
-      pixel_writer->Write(x + 100, y + 100, {r, g, b});
+      pixel_writer->Write(x + offset_x, y + offset_y, {r, g, b});
     }
   }
 
   // #@@range_begin(write_fonts)
   int i = 0;
   for (char c = '!'; c <= '~'; ++c, ++i) {
-    WriteAscii(*pixel_writer, 8 * i, 50, c, {0, 0, 0});
+    WriteAscii(*pixel_writer, 8 * i, 70, c, {0, 0, 0});
   }
   cnsl = new(console_instance) Console(pixel_writer);
   cnsl->puts("Hello MikanOS!");
