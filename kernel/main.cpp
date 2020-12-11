@@ -11,6 +11,8 @@
 #include "frame_buffer_config.hpp"
 #include "graphics.hpp"
 #include "font.hpp"
+
+#include "x86_img.hpp"
 // #@@range_end(includes)
 
 void* operator new(size_t size, void* buf) {
@@ -40,9 +42,14 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
       pixel_writer->Write(x, y, {255, 255, 255});
     }
   }
-  for (int x = 0; x < 200; ++x) {
-    for (int y = 0; y < 100; ++y) {
-      pixel_writer->Write(x, y, {0, 255, 0});
+  const uint8_t *data = x86_img.data;
+  for (int y = 0; y < x86_img.h; ++y) {
+    for (int x = 0; x < x86_img.w; ++x) {
+      uint8_t b = data[0];
+      uint8_t g = data[1];
+      uint8_t r = data[2];
+      data += 4;
+      pixel_writer->Write(x, y, {r, g, b});
     }
   }
 
