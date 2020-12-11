@@ -31,6 +31,9 @@ class Console
         PixelWriter *writer;
         int x;
         int y;
+        const int l_margine = 3;
+        const int line_spacing = 3;
+        const int char_height = 16;
 
     public:
         Console(PixelWriter *w) {
@@ -43,11 +46,14 @@ class Console
             if (writer == 0) {
                 return -1;
             }
-            while (*str != '0') {
-                WriteAscii(*writer, 8 * x, 9 * y, *str, {0, 0, 0});
+            while (*str != '\0') {
+                WriteAscii(*writer,
+                        l_margine + (8 * x),
+                        (char_height + line_spacing) * y,
+                        *str,
+                        {0, 0, 0});
                 x++;
                 str++;
-                if (x > 20) break;
             }
             x = 0;
             y++;
@@ -55,6 +61,8 @@ class Console
         }
 };
 
+char console_instance[sizeof(Console)];
+Console *cnsl;
 
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   switch (frame_buffer_config.pixel_format) {
@@ -80,7 +88,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
       uint8_t g = data[1];
       uint8_t r = data[2];
       data += 4;
-      pixel_writer->Write(x, y, {r, g, b});
+      pixel_writer->Write(x + 100, y + 100, {r, g, b});
     }
   }
 
@@ -89,9 +97,9 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   for (char c = '!'; c <= '~'; ++c, ++i) {
     WriteAscii(*pixel_writer, 8 * i, 50, c, {0, 0, 0});
   }
-  Console cnsl = Console(pixel_writer);
-  cnsl.puts("Hello world!");
-  cnsl.puts("0001 Hello world!");
+  cnsl = new(console_instance) Console(pixel_writer);
+  cnsl->puts("Hello MikanOS!");
+  cnsl->puts("Welcome to the OS development world!!");
 
   // #@@range_end(write_fonts)
   while (1) __asm__("hlt");
