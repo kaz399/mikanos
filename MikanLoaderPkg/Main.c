@@ -166,7 +166,12 @@ const CHAR16* GetPixelFormatUnicode(EFI_GRAPHICS_PIXEL_FORMAT fmt) {
 }
 
 void Halt(void) {
+#ifdef MDE_CPU_X64
   while (1) __asm__("hlt");
+#endif
+#ifdef MDE_CPU_AARCH64
+  while (1) __asm__("wfi");
+#endif
 }
 
 void CalcLoadAddressRange(Elf64_Ehdr* ehdr, UINT64* first, UINT64* last) {
