@@ -78,7 +78,8 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 
   for (int x = 0; x < frame_buffer_config.horizontal_resolution; ++x) {
     for (int y = 0; y < frame_buffer_config.vertical_resolution; ++y) {
-      pixel_writer->Write(x, y, {255, 255, 255});
+        uint8_t r = x % 256;
+      pixel_writer->Write(x, y, {r, 255, 255});
     }
   }
   const uint8_t *data = x86_img.data;
@@ -103,6 +104,12 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   cnsl->puts("Hello MikanOS!");
   cnsl->puts("Welcome to the OS development world!!");
 
+#ifdef MIKANOS_AARCH64
+  while (1) __asm__("wfi");
+#endif
+
+#ifdef MIKANOS_X64
   // #@@range_end(write_fonts)
   while (1) __asm__("hlt");
+#endif
 }

@@ -2,8 +2,8 @@ TARGET = kernel.elf
 OBJS = main.o graphics.o font.o hankaku.o x86_img.o
 DEPENDS = $(join $(dir $(OBJS)),$(addprefix .,$(notdir $(OBJS:.o=.d))))
 
-CXXFLAGS += -O2 -Wall -g --target=x86_64-elf -ffreestanding -mno-red-zone \
-            -fno-exceptions -fno-rtti -std=c++17
+CXXFLAGS += -O2 -Wall -g --target=$(CLANG_TARGET) -ffreestanding -mno-red-zone \
+            -fno-exceptions -fno-rtti -std=c++17 -D$(MIKANOS_ARCH)
 LDFLAGS  += --entry KernelMain -z norelro --image-base 0x100000 --static
 
 
