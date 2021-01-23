@@ -2,9 +2,16 @@ TARGET = kernel.elf
 OBJS = main.o graphics.o font.o hankaku.o x86_img.o
 DEPENDS = $(join $(dir $(OBJS)),$(addprefix .,$(notdir $(OBJS:.o=.d))))
 
+ifeq ($(MIKANOS_ARCH), ARCH_X64)
+MIKANOS_KERNEL_BASE:=0x100000
+endif
+ifeq ($(MIKANOS_ARCH), ARCH_AARCH64)
+MIKANOS_KERNEL_BASE:=0x40000000
+endif
+
 CXXFLAGS += -O2 -Wall -g --target=$(CLANG_TARGET) -ffreestanding -mno-red-zone \
             -fno-exceptions -fno-rtti -std=c++17 -D$(MIKANOS_ARCH)
-LDFLAGS  += --entry KernelMain -z norelro --image-base 0x100000 --static
+LDFLAGS  += --entry KernelMain -z norelro --image-base $(MIKANOS_KERNEL_BASE) --static
 
 
 .PHONY: all
@@ -29,7 +36,7 @@ hankaku.bin: hankaku.txt
 	../tools/makefont.py -o $@ $<
 
 hankaku.o: hankaku.bin
-	objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $< $@
+	llvm-objcopy -I binary -O elf64-aarch64 $< $@
 
 .%.d: %.bin
 	touch $@

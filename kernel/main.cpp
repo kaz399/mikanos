@@ -104,12 +104,10 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   cnsl->puts("Hello MikanOS!");
   cnsl->puts("Welcome to the OS development world!!");
 
-#ifdef MIKANOS_AARCH64
-  while (1) __asm__("wfi");
-#endif
-
-#ifdef MIKANOS_X64
-  // #@@range_end(write_fonts)
+#if ARCH_X64
   while (1) __asm__("hlt");
+#endif
+#if ARCH_AARCH64
+  while (1) __asm__("wfi");
 #endif
 }
