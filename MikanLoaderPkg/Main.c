@@ -9,6 +9,13 @@
 #include  <Protocol/BlockIo.h>
 #include  <Guid/FileInfo.h>
 
+#ifdef MDE_CPU_X64
+#define MIKANOS_BASE_ADRS  (0x100000)
+#endif
+#ifdef MDE_CPU_AARCH64
+#define MIKANOS_BASE_ADRS  (0x40000000) // for qemu virt machine
+#endif
+
 struct MemoryMap {
   UINTN buffer_size;
   VOID* buffer;
@@ -134,6 +141,7 @@ EFI_STATUS OpenGOP(EFI_HANDLE image_handle,
       &num_gop_handles,
       &gop_handles);
   if (EFI_ERROR(status)) {
+    Print(L"Error:LocateHandleBuffer\n");
     return status;
   }
 
@@ -145,6 +153,7 @@ EFI_STATUS OpenGOP(EFI_HANDLE image_handle,
       NULL,
       EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
   if (EFI_ERROR(status)) {
+    Print(L"Error:OpenProtocol\n");
     return status;
   }
 
@@ -172,7 +181,12 @@ const CHAR16* GetPixelFormatUnicode(EFI_GRAPHICS_PIXEL_FORMAT fmt) {
 
 // #@@range_begin(halt)
 void Halt(void) {
-  while (1) __asm__("hlt");
+#ifdef MDE_CPU_X64
+      while (1) __asm__("hlt");
+#endif
+#ifdef MDE_CPU_AARCH64
+      while (1) __asm__("wfi");
+#endif
 }
 // #@@range_end(halt)
 
@@ -263,7 +277,7 @@ EFI_STATUS EFIAPI UefiMain(
   UINTN kernel_file_size = file_info->FileSize;
 
   // #@@range_begin(alloc_error)
-  EFI_PHYSICAL_ADDRESS kernel_base_addr = 0x100000;
+  EFI_PHYSICAL_ADDRESS kernel_base_addr = MIKANOS_BASE_ADRS;
   status = gBS->AllocatePages(
       AllocateAddress, EfiLoaderData,
       (kernel_file_size + 0xfff) / 0x1000, &kernel_base_addr);
