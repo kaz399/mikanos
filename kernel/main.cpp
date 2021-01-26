@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <cstdio>
+#include <cstdarg>
 
 #include "frame_buffer_config.hpp"
 #include "graphics.hpp"
@@ -130,5 +131,10 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   }
   // #@@range_end(show_devices)
 
+#if ARCH_X64
   while (1) __asm__("hlt");
+#endif
+#if ARCH_AARCH64
+  while (1) __asm__("wfi");
+#endif
 }

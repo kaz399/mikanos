@@ -1,12 +1,19 @@
 TARGET = kernel.elf
+
+ifeq ($(MIKANOS_ARCH), ARCH_X64)
+MIKANOS_KERNEL_BASE:=0x100000
+endif
+ifeq ($(MIKANOS_ARCH), ARCH_AARCH64)
+MIKANOS_KERNEL_BASE:=0x40000000
+endif
+
 OBJS = main.o graphics.o font.o hankaku.o newlib_support.o console.o pci.o asmfunc.o
 DEPENDS = $(join $(dir $(OBJS)),$(addprefix .,$(notdir $(OBJS:.o=.d))))
 
-CFLAGS   += -O2 -Wall -g --target=x86_64-elf -ffreestanding -mno-red-zone
-CXXFLAGS += -O2 -Wall -g --target=x86_64-elf -ffreestanding -mno-red-zone \
-            -fno-exceptions -fno-rtti -std=c++17
-LDFLAGS  += --entry KernelMain -z norelro --image-base 0x100000 --static
-
+CFLAGS   += -O2 -Wall -g --target=$(CLANG_TARGET) -ffreestanding -mno-red-zone -D$(MIKANOS_ARCH)
+CXXFLAGS += -O2 -Wall -g --target=$(CLANG_TARGET) -ffreestanding -mno-red-zone \
+            -fno-exceptions -fno-rtti -std=c++17 -D$(MIKANOS_ARCH)
+LDFLAGS  += --entry KernelMain -z norelro --image-base $(MIKANOS_KERNEL_BASE) --static
 
 .PHONY: all
 all: $(TARGET)
@@ -35,13 +42,13 @@ kernel.elf: $(OBJS) Makefile
 	sed --in-place 's|$(notdir $(OBJ))|$(OBJ)|' $@
 
 %.o: %.asm Makefile
-	nasm -f elf64 -o $@ $<
+	clang --target=$(CLANG_TARGET) -o $@ $<
 
 hankaku.bin: hankaku.txt
 	../tools/makefont.py -o $@ $<
 
 hankaku.o: hankaku.bin
-	objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $< $@
+	llvm-objcopy -I binary -O elf64-aarch64 $< $@
 
 .%.d: %.bin
 	touch $@

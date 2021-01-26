@@ -137,6 +137,7 @@ EFI_STATUS OpenGOP(EFI_HANDLE image_handle,
       &num_gop_handles,
       &gop_handles);
   if (EFI_ERROR(status)) {
+    Print(L"Error:LocateHandleBuffer\n");
     return status;
   }
 
@@ -148,6 +149,7 @@ EFI_STATUS OpenGOP(EFI_HANDLE image_handle,
       NULL,
       EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
   if (EFI_ERROR(status)) {
+    Print(L"Error:OpenProtocol\n");
     return status;
   }
 
@@ -174,7 +176,12 @@ const CHAR16* GetPixelFormatUnicode(EFI_GRAPHICS_PIXEL_FORMAT fmt) {
 }
 
 void Halt(void) {
-  while (1) __asm__("hlt");
+#ifdef MDE_CPU_X64
+      while (1) __asm__("hlt");
+#endif
+#ifdef MDE_CPU_AARCH64
+      while (1) __asm__("wfi");
+#endif
 }
 
 void CalcLoadAddressRange(Elf64_Ehdr* ehdr, UINT64* first, UINT64* last) {
