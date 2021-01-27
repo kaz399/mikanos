@@ -9,11 +9,11 @@
 #include <cstdio>
 #include <cstdarg>
 
-#include "frame_buffer_config.hpp"
-#include "graphics.hpp"
-#include "font.hpp"
-#include "console.hpp"
-#include "pci.hpp"
+#include <frame_buffer_config.hpp>
+#include <graphics.hpp>
+#include <font.hpp>
+#include <console.hpp>
+#include <pci.hpp>
 
 void operator delete(void* obj) noexcept {
 }
@@ -104,7 +104,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   console = new(console_buf) Console{
     *pixel_writer, kDesktopFGColor, kDesktopBGColor
   };
-  printk("Welcome to MikanOS!\n");
+  printk("Welcome to MikanOS-AARCH64!\n");
 
   for (int dy = 0; dy < kMouseCursorHeight; ++dy) {
     for (int dx = 0; dx < kMouseCursorWidth; ++dx) {
@@ -118,6 +118,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 
 
   // #@@range_begin(show_devices)
+  printk("ScanAllBus start:\n");
   auto err = pci::ScanAllBus();
   printk("ScanAllBus: %s\n", err.Name());
 
