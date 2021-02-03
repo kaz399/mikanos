@@ -2,10 +2,12 @@
 
 #include <algorithm>
 #include <cstdint>
+#include "error.hpp"
 #include "frame_buffer_config.hpp"
 
 struct PixelColor {
   uint8_t r, g, b;
+  uint8_t a = 0xff;
 };
 
 constexpr PixelColor ToColor(uint32_t c) {
@@ -23,6 +25,8 @@ inline bool operator==(const PixelColor& lhs, const PixelColor& rhs) {
 inline bool operator!=(const PixelColor& lhs, const PixelColor& rhs) {
   return !(lhs == rhs);
 }
+
+PixelColor BlendPixel(const PixelColor& a, const PixelColor& b, const uint8_t alpha);
 
 template <typename T>
 struct Vector2D {
@@ -132,6 +136,9 @@ void FillRectangle(PixelWriter& writer, const Vector2D<int>& pos,
 const PixelColor kDesktopBGColor{45, 118, 237};
 const PixelColor kDesktopFGColor{255, 255, 255};
 
+bool AllocDesktopImageBuffer(PixelWriter& writer);
+WithError<PixelColor> GetDesktopPixel(Vector2D<int> pos);
+Error SetDesktopPixel(Vector2D<int> pos, PixelColor& c);
 void DrawDesktop(PixelWriter& writer);
 
 extern FrameBufferConfig screen_config;
