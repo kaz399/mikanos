@@ -14,10 +14,10 @@ class Console {
   void SetWindow(const std::shared_ptr<Window>& window);
   void SetLayerID(unsigned int layer_id);
   unsigned int LayerID() const;
+  void Refresh();
 
  private:
   void Newline();
-  void Refresh();
 
   PixelWriter* writer_;
   std::shared_ptr<Window> window_;

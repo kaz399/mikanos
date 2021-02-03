@@ -91,9 +91,12 @@ namespace {
   char console_buf[sizeof(Console)];
 }
 
+const PixelColor kConsoleFGColor = kDesktopFGColor;
+const PixelColor kConsoleBGColor = PixelColor({ 0x00, 0x00, 0x00, 0x00 });
+
 void InitializeConsole() {
   console = new(console_buf) Console{
-    kDesktopFGColor, kDesktopBGColor
+    kConsoleFGColor, kConsoleBGColor
   };
   console->SetWriter(screen_writer);
 }

@@ -112,6 +112,7 @@ void LayerManager::Draw(unsigned int id, Rectangle<int> area) const {
   screen_->Copy(window_area.pos, back_buffer_, window_area);
 }
 
+
 void LayerManager::Move(unsigned int id, Vector2D<int> new_pos) {
   auto layer = FindLayer(id);
   const auto window_size = layer->GetWindow()->Size();
@@ -204,6 +205,12 @@ int LayerManager::GetHeight(unsigned int id) {
   return -1;
 }
 
+void LayerManager::RedrawAll(void) {
+  DrawDesktop(*bgwindow->Writer());
+  console->Refresh();
+  Draw({{0, 0}, {INT_MAX, INT_MAX}});
+}
+
 namespace {
   FrameBuffer* screen;
 
@@ -256,11 +263,12 @@ std::map<unsigned int, uint64_t>* layer_task_map;
 
 void InitializeLayer() {
   const auto screen_size = ScreenSize();
+  layer_manager = new LayerManager;
 
-  auto bgwindow = std::make_shared<Window>(
+  layer_manager->bgwindow = std::make_shared<Window>(
       screen_size.x, screen_size.y, screen_config.pixel_format);
-  DrawDesktop(*bgwindow->Writer());
-
+  AllocDesktopImageBuffer(*layer_manager->bgwindow->Writer());
+  DrawDesktop(*layer_manager->bgwindow->Writer());
   auto console_window = std::make_shared<Window>(
       Console::kColumns * 8, Console::kRows * 16, screen_config.pixel_format);
   console->SetWindow(console_window);
@@ -272,11 +280,10 @@ void InitializeLayer() {
     exit(1);
   }
 
-  layer_manager = new LayerManager;
   layer_manager->SetWriter(screen);
 
   auto bglayer_id = layer_manager->NewLayer()
-    .SetWindow(bgwindow)
+    .SetWindow(layer_manager->bgwindow)
     .Move({0, 0})
     .ID();
   console->SetLayerID(layer_manager->NewLayer()

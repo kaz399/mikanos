@@ -72,6 +72,9 @@ class LayerManager {
   /** @brief 指定したレイヤーに設定されているウィンドウ内の指定された範囲を再描画する。 */
   void Draw(unsigned int id, Rectangle<int> area) const;
 
+  /** @brief Redraw all layers */
+  void RedrawAll(void);
+
   /** @brief レイヤーの位置情報を指定された絶対座標へと更新する。再描画する。 */
   void Move(unsigned int id, Vector2D<int> new_pos);
   /** @brief レイヤーの位置情報を指定された相対座標へと更新する。再描画する。 */
@@ -94,6 +97,7 @@ class LayerManager {
   /** @brief 指定されたレイヤーの現在の高さを返す。 */
   int GetHeight(unsigned int id);
 
+  std::shared_ptr<Window>bgwindow = 0;
  private:
   FrameBuffer* screen_{nullptr};
   mutable FrameBuffer back_buffer_{};
