@@ -6,6 +6,7 @@
 
 struct PixelColor {
   uint8_t r, g, b;
+  uint8_t a = 0xff;
 };
 
 constexpr PixelColor ToColor(uint32_t c) {
@@ -13,6 +14,15 @@ constexpr PixelColor ToColor(uint32_t c) {
     static_cast<uint8_t>((c >> 16) & 0xff),
     static_cast<uint8_t>((c >> 8) & 0xff),
     static_cast<uint8_t>(c & 0xff)
+  };
+}
+
+constexpr PixelColor ToColor(uint32_t c, uint8_t a) {
+  return {
+    static_cast<uint8_t>((c >> 16) & 0xff),
+    static_cast<uint8_t>((c >> 8) & 0xff),
+    static_cast<uint8_t>(c & 0xff),
+    a
   };
 }
 
@@ -122,6 +132,8 @@ class BGRResv8BitPerColorPixelWriter : public FrameBufferWriter {
   using FrameBufferWriter::FrameBufferWriter;
   virtual void Write(Vector2D<int> pos, const PixelColor& c) override;
 };
+
+PixelColor BlendPixel(const PixelColor& a, const PixelColor& b, const uint8_t alpha);
 
 void DrawRectangle(PixelWriter& writer, const Vector2D<int>& pos,
                    const Vector2D<int>& size, const PixelColor& c);

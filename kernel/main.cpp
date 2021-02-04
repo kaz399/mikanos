@@ -129,7 +129,7 @@ extern "C" void KernelMainNewStack(
   InitializeConsole();
 
   printk("Welcome to MikanOS!\n");
-  SetLogLevel(kWarn);
+  SetLogLevel(kInfo);
 
   InitializeSegmentation();
   InitializePaging();

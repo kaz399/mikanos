@@ -43,7 +43,7 @@ class Layer {
   Layer& MoveRelative(Vector2D<int> pos_diff);
 
   /** @brief 指定された描画先にウィンドウの内容を描画する。 */
-  void DrawTo(FrameBuffer& screen, const Rectangle<int>& area) const;
+  void DrawTo(FrameBuffer& screen, const Rectangle<int>& area, const std::shared_ptr<Window>& bg) const;
 
  private:
   unsigned int id_;
@@ -93,6 +93,11 @@ class LayerManager {
   Layer* FindLayer(unsigned int id);
   /** @brief 指定されたレイヤーの現在の高さを返す。 */
   int GetHeight(unsigned int id);
+
+  struct BgWindow {
+      std::shared_ptr<Window>window = 0;
+      unsigned int layer_id;
+  } bg;
 
  private:
   FrameBuffer* screen_{nullptr};

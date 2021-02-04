@@ -20,6 +20,14 @@ void BGRResv8BitPerColorPixelWriter::Write(Vector2D<int> pos, const PixelColor& 
   p[2] = c.r;
 }
 
+PixelColor BlendPixel(const PixelColor& a, const PixelColor& b, const uint8_t alpha) {
+  return PixelColor({
+      static_cast<uint8_t>((static_cast<uint32_t>(a.r) * (0xff - alpha) + static_cast<uint32_t>(b.r) * alpha) / 0xff),
+      static_cast<uint8_t>((static_cast<uint32_t>(a.g) * (0xff - alpha) + static_cast<uint32_t>(b.g) * alpha) / 0xff),
+      static_cast<uint8_t>((static_cast<uint32_t>(a.b) * (0xff - alpha) + static_cast<uint32_t>(b.b) * alpha) / 0xff)
+      });
+}
+
 void DrawRectangle(PixelWriter& writer, const Vector2D<int>& pos,
                    const Vector2D<int>& size, const PixelColor& c) {
   for (int dx = 0; dx < size.x; ++dx) {

@@ -61,25 +61,43 @@ Window::Window(int width, int height, PixelFormat shadow_format) : width_{width}
   }
 }
 
-void Window::DrawTo(FrameBuffer& dst, Vector2D<int> pos, const Rectangle<int>& area) {
-  if (!transparent_color_) {
+void Window::DrawTo(FrameBuffer& dst, Vector2D<int> pos, const Rectangle<int>& area, const std::shared_ptr<Window>& bg) {
+  if (!transparent_color_ && !use_alphablending_) {
     Rectangle<int> window_area{pos, Size()};
     Rectangle<int> intersection = area & window_area;
     dst.Copy(intersection.pos, shadow_buffer_, {intersection.pos - pos, intersection.size});
     return;
   }
 
-  const auto tc = transparent_color_.value();
   auto& writer = dst.Writer();
-  for (int y = std::max(0, 0 - pos.y);
-       y < std::min(Height(), writer.Height() - pos.y);
-       ++y) {
-    for (int x = std::max(0, 0 - pos.x);
-         x < std::min(Width(), writer.Width() - pos.x);
-         ++x) {
-      const auto c = At(Vector2D<int>{x, y});
-      if (c != tc) {
-        writer.Write(pos + Vector2D<int>{x, y}, c);
+  if (transparent_color_) {
+    const auto tc = transparent_color_.value();
+    for (int y = std::max(0, 0 - pos.y);
+        y < std::min(Height(), writer.Height() - pos.y);
+        ++y) {
+      for (int x = std::max(0, 0 - pos.x);
+          x < std::min(Width(), writer.Width() - pos.x);
+          ++x) {
+        const auto c = At(Vector2D<int>{x, y});
+        if (c != tc) {
+          writer.Write(pos + Vector2D<int>{x, y}, c);
+        }
+      }
+    }
+  } else {
+    for (int y = std::max(0, 0 - pos.y);
+        y < std::min(Height(), writer.Height() - pos.y);
+        ++y) {
+      for (int x = std::max(0, 0 - pos.x);
+          x < std::min(Width(), writer.Width() - pos.x);
+          ++x) {
+        const auto c = At(Vector2D<int>{x, y});
+        if (c.a != 0xff) {
+            const auto bgcolor = bg->At(pos + Vector2D<int>{x, y});
+            writer.Write(pos + Vector2D<int>{x, y}, BlendPixel(bgcolor, c, c.a));
+        } else {
+            writer.Write(pos + Vector2D<int>{x, y}, c);
+        }
       }
     }
   }
@@ -116,6 +134,10 @@ Vector2D<int> Window::Size() const {
 
 void Window::Move(Vector2D<int> dst_pos, const Rectangle<int>& src) {
   shadow_buffer_.Move(dst_pos, src);
+}
+
+void Window::SetAlphaBlending(const bool stat) {
+  use_alphablending_ = stat;
 }
 
 WindowRegion Window::GetWindowRegion(Vector2D<int> pos) {

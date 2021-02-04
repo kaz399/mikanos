@@ -54,8 +54,9 @@ class Window {
    * @param dst  描画先
    * @param pos  dst の左上を基準としたウィンドウの位置
    * @param area  dst の左上を基準とした描画対象範囲
+   * @param bg   window object of the desktop backgroud
    */
-  void DrawTo(FrameBuffer& dst, Vector2D<int> pos, const Rectangle<int>& area);
+  void DrawTo(FrameBuffer& dst, Vector2D<int> pos, const Rectangle<int>& area, const std::shared_ptr<Window>& bg);
   /** @brief 透過色を設定する。 */
   void SetTransparentColor(std::optional<PixelColor> c);
   /** @brief このインスタンスに紐付いた WindowWriter を取得する。 */
@@ -81,15 +82,19 @@ class Window {
    */
   void Move(Vector2D<int> dst_pos, const Rectangle<int>& src);
 
+  void SetAlphaBlending(const bool stat);
+
   virtual void Activate() {}
   virtual void Deactivate() {}
   virtual WindowRegion GetWindowRegion(Vector2D<int> pos);
+
 
  private:
   int width_, height_;
   std::vector<std::vector<PixelColor>> data_{};
   WindowWriter writer_{*this};
   std::optional<PixelColor> transparent_color_{std::nullopt};
+  bool use_alphablending_ = false;
 
   FrameBuffer shadow_buffer_{};
 };

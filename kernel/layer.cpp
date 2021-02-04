@@ -52,9 +52,9 @@ Layer& Layer::MoveRelative(Vector2D<int> pos_diff) {
   return *this;
 }
 
-void Layer::DrawTo(FrameBuffer& screen, const Rectangle<int>& area) const {
+void Layer::DrawTo(FrameBuffer& screen, const Rectangle<int>& area, const std::shared_ptr<Window>& bg) const {
   if (window_) {
-    window_->DrawTo(screen, pos_, area);
+    window_->DrawTo(screen, pos_, area, bg);
   }
 }
 
@@ -83,7 +83,7 @@ void LayerManager::RemoveLayer(unsigned int id) {
 
 void LayerManager::Draw(const Rectangle<int>& area) const {
   for (auto layer : layer_stack_) {
-    layer->DrawTo(back_buffer_, area);
+    layer->DrawTo(back_buffer_, area, bg.window);
   }
   screen_->Copy(area.pos, back_buffer_, area);
 }
@@ -106,7 +106,7 @@ void LayerManager::Draw(unsigned int id, Rectangle<int> area) const {
       draw = true;
     }
     if (draw) {
-      layer->DrawTo(back_buffer_, window_area);
+      layer->DrawTo(back_buffer_, window_area, bg.window);
     }
   }
   screen_->Copy(window_area.pos, back_buffer_, window_area);
@@ -256,13 +256,16 @@ std::map<unsigned int, uint64_t>* layer_task_map;
 
 void InitializeLayer() {
   const auto screen_size = ScreenSize();
+  layer_manager = new LayerManager;
 
-  auto bgwindow = std::make_shared<Window>(
-      screen_size.x, screen_size.y, screen_config.pixel_format);
-  DrawDesktop(*bgwindow->Writer());
+  layer_manager->bg.window = std::make_shared<Window>(
+          screen_size.x, screen_size.y, screen_config.pixel_format);
+  DrawDesktop(*layer_manager->bg.window->Writer());
 
   auto console_window = std::make_shared<Window>(
       Console::kColumns * 8, Console::kRows * 16, screen_config.pixel_format);
+  Log(kInfo, "console: enable alpha blending\n");
+  console_window->SetAlphaBlending(true);
   console->SetWindow(console_window);
 
   screen = new FrameBuffer;
@@ -272,11 +275,10 @@ void InitializeLayer() {
     exit(1);
   }
 
-  layer_manager = new LayerManager;
   layer_manager->SetWriter(screen);
 
-  auto bglayer_id = layer_manager->NewLayer()
-    .SetWindow(bgwindow)
+  layer_manager->bg.layer_id = layer_manager->NewLayer()
+    .SetWindow(layer_manager->bg.window)
     .Move({0, 0})
     .ID();
   console->SetLayerID(layer_manager->NewLayer()
@@ -284,7 +286,7 @@ void InitializeLayer() {
     .Move({0, 0})
     .ID());
 
-  layer_manager->UpDown(bglayer_id, 0);
+  layer_manager->UpDown(layer_manager->bg.layer_id, 0);
   layer_manager->UpDown(console->LayerID(), 1);
 
   active_layer = new ActiveLayer{*layer_manager};

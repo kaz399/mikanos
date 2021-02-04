@@ -10,6 +10,9 @@
 #include "font.hpp"
 #include "layer.hpp"
 
+static const PixelColor kConsoleFGColor = PixelColor({0xff, 0xff, 0xff});
+static const PixelColor kConsoleBGColor = PixelColor({0x00, 0x00, 0x00, 0x80});
+
 Console::Console(const PixelColor& fg_color, const PixelColor& bg_color)
     : writer_{nullptr}, window_{}, fg_color_{fg_color}, bg_color_{bg_color},
       buffer_{}, cursor_row_{0}, cursor_column_{0}, layer_id_{0} {
@@ -93,7 +96,7 @@ namespace {
 
 void InitializeConsole() {
   console = new(console_buf) Console{
-    kDesktopFGColor, kDesktopBGColor
+    kConsoleFGColor, kConsoleBGColor
   };
   console->SetWriter(screen_writer);
 }
