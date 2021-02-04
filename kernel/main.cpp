@@ -56,6 +56,7 @@ unsigned int main_window_layer_id;
 void InitializeMainWindow() {
   main_window = std::make_shared<ToplevelWindow>(
       160, 52, screen_config.pixel_format, "Hello Window");
+  main_window->SetAlphaBlending(true);
 
   main_window_layer_id = layer_manager->NewLayer()
     .SetWindow(main_window)
@@ -74,6 +75,7 @@ void InitializeTextWindow() {
 
   text_window = std::make_shared<ToplevelWindow>(
       win_w, win_h, screen_config.pixel_format, "Text Box Test");
+  text_window->SetAlphaBlending(true);
   DrawTextbox(*text_window->InnerWriter(), {0, 0}, text_window->InnerSize());
 
   text_window_layer_id = layer_manager->NewLayer()
@@ -88,7 +90,7 @@ void InitializeTextWindow() {
 int text_window_index;
 
 void DrawTextCursor(bool visible) {
-  const auto color = visible ? ToColor(0) : ToColor(0xffffff);
+  const auto color = visible ? ToColor(0xffffff, 0x80) : ToColor(0x000000, 0x80);
   const auto pos = Vector2D<int>{4 + 8*text_window_index, 5};
   FillRectangle(*text_window->InnerWriter(), pos, {7, 15}, color);
 }
@@ -104,11 +106,11 @@ void InputTextWindow(char c) {
   if (c == '\b' && text_window_index > 0) {
     DrawTextCursor(false);
     --text_window_index;
-    FillRectangle(*text_window->InnerWriter(), pos(), {8, 16}, ToColor(0xffffff));
+    FillRectangle(*text_window->InnerWriter(), pos(), {8, 16}, ToColor(0x000000, 0x80));
     DrawTextCursor(true);
   } else if (c >= ' ' && text_window_index < max_chars) {
     DrawTextCursor(false);
-    WriteAscii(*text_window->InnerWriter(), pos(), c, ToColor(0));
+    WriteAscii(*text_window->InnerWriter(), pos(), c, ToColor(0xffffff));
     ++text_window_index;
     DrawTextCursor(true);
   }
@@ -176,7 +178,7 @@ extern "C" void KernelMainNewStack(
     __asm__("sti");
 
     sprintf(str, "%010lu", tick);
-    FillRectangle(*main_window->InnerWriter(), {20, 4}, {8 * 10, 16}, {0xc6, 0xc6, 0xc6});
+    FillRectangle(*main_window->InnerWriter(), {20, 4}, {8 * 10, 16}, {0x86, 0x86, 0x86, 0x80});
     WriteString(*main_window->InnerWriter(), {20, 4}, str, {0, 0, 0});
     layer_manager->Draw(main_window_layer_id);
 

@@ -179,28 +179,28 @@ Vector2D<int> ToplevelWindow::InnerSize() const {
 }
 
 void DrawWindow(PixelWriter& writer, const char* title) {
-  auto fill_rect = [&writer](Vector2D<int> pos, Vector2D<int> size, uint32_t c) {
-    FillRectangle(writer, pos, size, ToColor(c));
+  auto fill_rect = [&writer](Vector2D<int> pos, Vector2D<int> size, uint32_t c, uint8_t alpha) {
+    FillRectangle(writer, pos, size, ToColor(c, alpha));
   };
   const auto win_w = writer.Width();
   const auto win_h = writer.Height();
 
-  fill_rect({0, 0},         {win_w, 1},             0xc6c6c6);
-  fill_rect({1, 1},         {win_w - 2, 1},         0xffffff);
-  fill_rect({0, 0},         {1, win_h},             0xc6c6c6);
-  fill_rect({1, 1},         {1, win_h - 2},         0xffffff);
-  fill_rect({win_w - 2, 1}, {1, win_h - 2},         0x848484);
-  fill_rect({win_w - 1, 0}, {1, win_h},             0x000000);
-  fill_rect({2, 2},         {win_w - 4, win_h - 4}, 0xc6c6c6);
-  fill_rect({1, win_h - 2}, {win_w - 2, 1},         0x848484);
-  fill_rect({0, win_h - 1}, {win_w, 1},             0x000000);
+  fill_rect({0, 0},         {win_w, 1},             0xc6c6c6, 0xff);
+  fill_rect({1, 1},         {win_w - 2, 1},         0xffffff, 0xff);
+  fill_rect({0, 0},         {1, win_h},             0xc6c6c6, 0xff);
+  fill_rect({1, 1},         {1, win_h - 2},         0xffffff, 0xff);
+  fill_rect({win_w - 2, 1}, {1, win_h - 2},         0x848484, 0xff);
+  fill_rect({win_w - 1, 0}, {1, win_h},             0x000000, 0xff);
+  fill_rect({2, 2},         {win_w - 4, win_h - 4}, 0x868686, 0x80);
+  fill_rect({1, win_h - 2}, {win_w - 2, 1},         0x848484, 0xff);
+  fill_rect({0, win_h - 1}, {win_w, 1},             0x000000, 0xff);
 
   DrawWindowTitle(writer, title, false);
 }
 
 void DrawTextbox(PixelWriter& writer, Vector2D<int> pos, Vector2D<int> size) {
   DrawTextbox(writer, pos, size,
-              ToColor(0xffffff), ToColor(0xc6c6c6), ToColor(0x848484));
+              ToColor(0x000000, 0x80), ToColor(0xc6c6c6), ToColor(0x848484));
 }
 
 void DrawTerminal(PixelWriter& writer, Vector2D<int> pos, Vector2D<int> size) {
