@@ -395,13 +395,46 @@ SYSCALL(MapFile) {
   return { vaddr_begin, 0 };
 }
 
+SYSCALL(SetDesktopPixel) {
+  Vector2D<int> pos = Vector2D<int>({static_cast<int>(arg1), static_cast<int>(arg2)});
+  PixelColor c = PixelColor({
+      static_cast<uint8_t>((arg3 >> 16) & 0xff),
+      static_cast<uint8_t>((arg3 >> 8) & 0xff),
+      static_cast<uint8_t>(arg3 & 0xff)});
+  layer_manager->SetBgPixel(pos, c);
+  return {0, 0};
+}
+
+SYSCALL(GetDesktopWidth) {
+  int *width = reinterpret_cast<int *>(arg1);
+  if (!width) {
+    return {0, -1};
+  }
+  *width = ScreenSize().x;
+  return {0, 0};
+}
+
+SYSCALL(GetDesktopHeight) {
+  int *height = reinterpret_cast<int *>(arg1);
+  if (!height) {
+    return {0, -1};
+  }
+  *height = ScreenSize().y - 50;
+  return {0, 0};
+}
+
+SYSCALL(RedrawAllWidows) {
+  Log(kInfo, "Redraw desktop\n");
+  layer_manager->RedrawAll();
+  return {0, 0};
+}
 #undef SYSCALL
 
 } // namespace syscall
 
 using SyscallFuncType = syscall::Result (uint64_t, uint64_t, uint64_t,
                                          uint64_t, uint64_t, uint64_t);
-extern "C" std::array<SyscallFuncType*, 0x10> syscall_table{
+extern "C" std::array<SyscallFuncType*, 0x14> syscall_table{
   /* 0x00 */ syscall::LogString,
   /* 0x01 */ syscall::PutString,
   /* 0x02 */ syscall::Exit,
@@ -418,6 +451,10 @@ extern "C" std::array<SyscallFuncType*, 0x10> syscall_table{
   /* 0x0d */ syscall::ReadFile,
   /* 0x0e */ syscall::DemandPages,
   /* 0x0f */ syscall::MapFile,
+  /* 0x10 */ syscall::SetDesktopPixel,
+  /* 0x11 */ syscall::GetDesktopWidth,
+  /* 0x12 */ syscall::GetDesktopHeight,
+  /* 0x13 */ syscall::RedrawAllWidows,
 };
 
 void InitializeSyscall() {

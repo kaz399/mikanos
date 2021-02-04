@@ -112,6 +112,10 @@ void LayerManager::Draw(unsigned int id, Rectangle<int> area) const {
   screen_->Copy(window_area.pos, back_buffer_, window_area);
 }
 
+void LayerManager::RedrawAll(void) {
+  Draw({{0, 0}, {INT_MAX, INT_MAX}});
+}
+
 void LayerManager::Move(unsigned int id, Vector2D<int> new_pos) {
   auto layer = FindLayer(id);
   const auto window_size = layer->GetWindow()->Size();
@@ -202,6 +206,10 @@ int LayerManager::GetHeight(unsigned int id) {
     }
   }
   return -1;
+}
+
+void LayerManager::SetBgPixel(Vector2D<int> pos, PixelColor& c) {
+  bg.window->Write(pos, c);
 }
 
 namespace {
