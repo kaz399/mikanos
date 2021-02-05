@@ -1,6 +1,6 @@
 /**************************************************************/
 /**
-    @file    iofunc.h
+    @file    halt.cpp
 
     @brief
 
@@ -11,15 +11,10 @@
 
 */
 /**************************************************************/
-#ifndef __IOFUNC_H__
-#define __IOFUNC_H__
 
-#include <cstdint>
+#include "halt.hpp"
 
-extern "C" {
-    void IoOut32(uint16_t addr, uint32_t data);
-    uint32_t IoIn32(uint16_t addr);
+void halt()
+{
+  while (1) __asm__("wfi");
 }
-
-#endif /* __IOFUNC_H__ */
-

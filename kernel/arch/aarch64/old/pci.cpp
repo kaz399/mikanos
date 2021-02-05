@@ -5,26 +5,48 @@
  */
 
 #include "pci.hpp"
+#include <error.hpp>
 
-#include "asmfunc.h"
+#include "iofunc.hpp"
+
+extern int printk(const char* format, ...);
 
 namespace {
   using namespace pci;
 
   /** @brief CONFIG_ADDRESS 用の 32 ビット整数を生成する */
-  uint32_t MakeAddress(uint8_t bus, uint8_t device,
+  pci_adrs_t MakeIoAddress(uint64_t base, uint8_t bus, uint8_t device,
                        uint8_t function, uint8_t reg_addr) {
-    auto shl = [](uint32_t x, unsigned int bits) {
+    auto shl = [](uint64_t x, unsigned int bits) {
         return x << bits;
     };
 
-    return shl(1, 31)  // enable bit
-        | shl(bus, 16)
-        | shl(device, 11)
-        | shl(function, 8)
+    pci_adrs_t adrs = base
+        | shl((bus & 0xffu), 16)
+        | shl((device & 0x1fu), 11)
+        | shl((function & 0x07u), 8)
         | (reg_addr & 0xfcu);
+    printk("PCI IO ADRS:%0p\n", adrs);
+    return adrs;
   }
 
+  // address for ECAM
+  pci_adrs_t MakeEcamAddress(uint64_t base, uint8_t bus, uint8_t device,
+                       uint8_t function, uint16_t reg_addr) {
+    auto shl = [](uint64_t x, unsigned int bits) {
+        return x << bits;
+    };
+
+    pci_adrs_t adrs = base
+        | shl((bus & 0xffu), 20)
+        | shl((device & 0x1fu), 15)
+        | shl((function & 0x07u), 12)
+        | (reg_addr & 0xfffu);
+    printk("PCI ECAM ADRS:%0p\n", adrs);
+    return adrs;
+  }
+
+  // #@@range_begin(add_device)
   /** @brief devices[num_device] に情報を書き込み num_device をインクリメントする． */
   Error AddDevice(const Device& device) {
     if (num_device == devices.size()) {
@@ -35,9 +57,11 @@ namespace {
     ++num_device;
     return MAKE_ERROR(Error::kSuccess);
   }
+  // #@@range_end(add_device)
 
   Error ScanBus(uint8_t bus);
 
+  // #@@range_begin(scan_function)
   /** @brief 指定のファンクションを devices に追加する．
    * もし PCI-PCI ブリッジなら，セカンダリバスに対し ScanBus を実行する
    */
@@ -58,7 +82,9 @@ namespace {
 
     return MAKE_ERROR(Error::kSuccess);
   }
+  // #@@range_end(scan_function)
 
+  // #@@range_begin(scan_device)
   /** @brief 指定のデバイス番号の各ファンクションをスキャンする．
    * 有効なファンクションを見つけたら ScanFunction を実行する．
    */
@@ -80,7 +106,9 @@ namespace {
     }
     return MAKE_ERROR(Error::kSuccess);
   }
+  // #@@range_end(scan_device)
 
+  // #@@range_begin(scan_bus)
   /** @brief 指定のバス番号の各デバイスをスキャンする．
    * 有効なデバイスを見つけたら ScanDevice を実行する．
    */
@@ -95,39 +123,41 @@ namespace {
     }
     return MAKE_ERROR(Error::kSuccess);
   }
+  // #@@range_end(scan_bus)
 }
 
 namespace pci {
-  void WriteAddress(uint32_t address) {
-    IoOut32(kConfigAddress, address);
+  void WriteIoConfig(pci_adrs_t address, uint32_t data) {
+      io_write32(address, data);
   }
 
-  void WriteData(uint32_t value) {
-    IoOut32(kConfigData, value);
+  uint32_t ReadIoConfig(pci_adrs_t address) {
+      return io_read32(address);
   }
 
-  uint32_t ReadData() {
-    return IoIn32(kConfigData);
+  void WriteEcamConfig(pci_adrs_t address, uint32_t data) {
+      io_write32(address, data);
+  }
+
+  uint32_t ReadEcamConfig(pci_adrs_t address) {
+      return io_read32(address);
   }
 
   uint16_t ReadVendorId(uint8_t bus, uint8_t device, uint8_t function) {
-    WriteAddress(MakeAddress(bus, device, function, 0x00));
-    return ReadData() & 0xffffu;
+      return ReadIoConfig(MakeIoAddress(IoBaseAddress, bus, device, function, 0x00)) & 0xffffu;
   }
+  // #@@range_end(config_addr_data)
 
   uint16_t ReadDeviceId(uint8_t bus, uint8_t device, uint8_t function) {
-    WriteAddress(MakeAddress(bus, device, function, 0x00));
-    return ReadData() >> 16;
+      return ReadIoConfig(MakeIoAddress(IoBaseAddress, bus, device, function, 0x00)) >> 16;
   }
 
   uint8_t ReadHeaderType(uint8_t bus, uint8_t device, uint8_t function) {
-    WriteAddress(MakeAddress(bus, device, function, 0x0c));
-    return (ReadData() >> 16) & 0xffu;
+    return (ReadIoConfig(MakeIoAddress(IoBaseAddress, bus, device, function, 0x0c)) >> 16) & 0xffu;
   }
 
   ClassCode ReadClassCode(uint8_t bus, uint8_t device, uint8_t function) {
-    WriteAddress(MakeAddress(bus, device, function, 0x08));
-    auto reg = ReadData();
+    auto reg = ReadIoConfig(MakeIoAddress(IoBaseAddress, bus, device, function, 0x08));
     ClassCode cc;
     cc.base       = (reg >> 24) & 0xffu;
     cc.sub        = (reg >> 16) & 0xffu;
@@ -136,8 +166,7 @@ namespace pci {
   }
 
   uint32_t ReadBusNumbers(uint8_t bus, uint8_t device, uint8_t function) {
-    WriteAddress(MakeAddress(bus, device, function, 0x18));
-    return ReadData();
+    return ReadIoConfig(MakeIoAddress(IoBaseAddress, bus, device, function, 0x18));
   }
 
   bool IsSingleFunctionDevice(uint8_t header_type) {
@@ -164,13 +193,11 @@ namespace pci {
   }
 
   uint32_t ReadConfReg(const Device& dev, uint8_t reg_addr) {
-    WriteAddress(MakeAddress(dev.bus, dev.device, dev.function, reg_addr));
-    return ReadData();
+    return ReadIoConfig(MakeIoAddress(IoBaseAddress, dev.bus, dev.device, dev.function, reg_addr));
   }
 
   void WriteConfReg(const Device& dev, uint8_t reg_addr, uint32_t value) {
-    WriteAddress(MakeAddress(dev.bus, dev.device, dev.function, reg_addr));
-    WriteData(value);
+    return WriteIoConfig(MakeIoAddress(IoBaseAddress, dev.bus, dev.device, dev.function, reg_addr), value);
   }
 
   WithError<uint64_t> ReadBar(Device& device, unsigned int bar_index) {

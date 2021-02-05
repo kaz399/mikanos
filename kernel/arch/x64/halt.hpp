@@ -1,6 +1,6 @@
 /**************************************************************/
 /**
-    @file    iofunc.h
+    @file    halt.hpp
 
     @brief
 
@@ -11,15 +11,10 @@
 
 */
 /**************************************************************/
-#ifndef __IOFUNC_H__
-#define __IOFUNC_H__
+#ifndef __HALT_HPP__
+#define __HALT_HPP__
 
-#include <cstdint>
+void halt();
 
-extern "C" {
-    void IoOut32(uint16_t addr, uint32_t data);
-    uint32_t IoIn32(uint16_t addr);
-}
-
-#endif /* __IOFUNC_H__ */
+#endif /* __HALT_HPP__ */
 

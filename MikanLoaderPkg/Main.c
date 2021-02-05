@@ -8,6 +8,7 @@
 #include  <Protocol/SimpleFileSystem.h>
 #include  <Protocol/DiskIo2.h>
 #include  <Protocol/BlockIo.h>
+#include  <Protocol/PciRootBridgeIo.h>
 #include  <Guid/FileInfo.h>
 #include  "frame_buffer_config.hpp"
 #include  "elf.hpp"
@@ -158,6 +159,40 @@ EFI_STATUS OpenGOP(EFI_HANDLE image_handle,
   return EFI_SUCCESS;
 }
 
+EFI_STATUS OpenPCI(EFI_HANDLE image_handle,
+        EFI_PCI_ROOT_BRIDGE_IO_PROTOCOL **pci) {
+  EFI_STATUS status;
+  UINTN num_pci_handles = 0;
+  EFI_HANDLE* pci_handles = NULL;
+
+  status = gBS->LocateHandleBuffer(
+      ByProtocol,
+      &gEfiPciRootBridgeIoProtocolGuid,
+      NULL,
+      &num_pci_handles,
+      &pci_handles);
+  if (EFI_ERROR(status)) {
+    Print(L"Error:LocateHandleBuffer\n");
+    return status;
+  }
+
+  status = gBS->OpenProtocol(
+      pci_handles[0],
+      &gEfiPciRootBridgeIoProtocolGuid,
+      (VOID**)pci,
+      image_handle,
+      NULL,
+      EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+  if (EFI_ERROR(status)) {
+    Print(L"Error:OpenProtocol\n");
+    return status;
+  }
+
+  FreePool(pci_handles);
+
+  return EFI_SUCCESS;
+}
+
 const CHAR16* GetPixelFormatUnicode(EFI_GRAPHICS_PIXEL_FORMAT fmt) {
   switch (fmt) {
     case PixelRedGreenBlueReserved8BitPerColor:
@@ -271,6 +306,18 @@ EFI_STATUS EFIAPI UefiMain(
   for (UINTN i = 0; i < gop->Mode->FrameBufferSize; ++i) {
     frame_buffer[i] = 255;
   }
+
+  // Get PCI information
+  EFI_PCI_ROOT_BRIDGE_IO_PROTOCOL* pci;
+  status = OpenPCI(image_handle, &pci);
+  if (EFI_ERROR(status)) {
+    Print(L"failed to open PCI: %r\n", status);
+    Halt();
+  }
+  Print(L"PCI: Read:%08lx Write:%08lx\n",
+      pci->Pci.Read,
+      pci->Pci.Write);
+
 
   EFI_FILE_PROTOCOL* kernel_file;
   status = root_dir->Open(
