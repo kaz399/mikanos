@@ -19,19 +19,19 @@
 extern int printk(const char* format, ...);
 
 extern "C" {
-    static const uint64_t PcieIoBaseAddress = 0x3eff0000;
-
-    void IoOut32(uint16_t addr, uint32_t data)
+    void io_write32(uint64_t address, uint32_t data)
     {
         // write_memory_barrier();
-        volatile uint32_t *mmio_addr = (volatile uint32_t *)(PcieIoBaseAddress | addr);
-        *mmio_addr = data;
+        volatile uint32_t *adrs = (volatile uint32_t *)address;
+        *adrs = data;
     }
 
-    uint32_t IoIn32(uint16_t addr)
+    uint32_t io_read32(uint64_t address)
     {
-        volatile uint32_t *mmio_addr = (volatile uint32_t *)(PcieIoBaseAddress | addr);
-        uint32_t data = *mmio_addr;
+        // printk("read:%0p\n", address);
+        volatile uint32_t *adrs = (volatile uint32_t *)address;
+        uint32_t data = *adrs;
+        // printk("data:%08x\n", data);
         // read_memory_barrier();
         return data;
     }

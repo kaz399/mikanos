@@ -14,11 +14,10 @@
 #ifndef __IOFUNC_H__
 #define __IOFUNC_H__
 
-#include <cstdint>
 
 extern "C" {
-    void IoOut32(uint16_t addr, uint32_t data);
-    uint32_t IoIn32(uint16_t addr);
+    void io_write32(uint64_t adrs, uint32_t data);
+    uint32_t io_read32(uint64_t adrs);
 }
 
 #endif /* __IOFUNC_H__ */

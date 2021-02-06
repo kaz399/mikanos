@@ -64,8 +64,7 @@ void SwitchEhci2Xhci(const pci::Device& xhc_dev) {
   bool intel_ehc_exist = false;
   for (int i = 0; i < pci::num_device; ++i) {
     if (pci::devices[i].class_code.Match(0x0cu, 0x03u, 0x20u) /* EHCI */ &&
-        //0x8086 == pci::ReadVendorId(pci::devices[i])) {
-        0x1033 == pci::ReadVendorId(pci::devices[i])) {
+        0x8086 == pci::ReadVendorId(pci::devices[i])) {
       intel_ehc_exist = true;
       break;
     }

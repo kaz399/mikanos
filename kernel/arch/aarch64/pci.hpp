@@ -9,13 +9,31 @@
 #include <cstdint>
 #include <array>
 
-#include "error.hpp"
+#include <error.hpp>
+
+typedef uint64_t pci_adrs_t;
 
 namespace pci {
   /** @brief CONFIG_ADDRESS レジスタの IO ポートアドレス */
   const uint16_t kConfigAddress = 0x0cf8;
   /** @brief CONFIG_DATA レジスタの IO ポートアドレス */
   const uint16_t kConfigData = 0x0cfc;
+
+  const uint64_t IoBaseAddress = 0x3eff0000;
+  const uint64_t EcamBaseAddress = 0x4010000000; // highmem
+  // const uint64_t EcamBaseAddress = 0x3f000000; // highmem=off
+
+  void WriteConfig(pci_adrs_t address, uint32_t data);
+
+  uint32_t ReadConfig(pci_adrs_t address);
+
+#if 0
+  // #@@range_begin(config_addr)
+  /** @brief CONFIG_ADDRESS レジスタの IO ポートアドレス */
+  const uint16_t kConfigAddress = 0x0cf8;
+  /** @brief CONFIG_DATA レジスタの IO ポートアドレス */
+  const uint16_t kConfigData = 0x0cfc;
+#endif
 
   // #@@range_begin(class_code)
   /** @brief PCI デバイスのクラスコード */
