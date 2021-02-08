@@ -13,7 +13,6 @@ extern int printk(const char* format, ...);
 
 namespace {
   using namespace pci;
-
   /** @brief CONFIG_ADDRESS 用の 32 ビット整数を生成する */
   pci_adrs_t MakeIoAddress(uint64_t base, uint8_t bus, uint8_t device,
                        uint8_t function, uint8_t reg_addr) {
@@ -144,20 +143,20 @@ namespace pci {
   }
 
   uint16_t ReadVendorId(uint8_t bus, uint8_t device, uint8_t function) {
-      return ReadIoConfig(MakeIoAddress(IoBaseAddress, bus, device, function, 0x00)) & 0xffffu;
+      return ReadEcamConfig(MakeEcamAddress(EcamBaseAddress, bus, device, function, 0x00)) & 0xffffu;
   }
   // #@@range_end(config_addr_data)
 
   uint16_t ReadDeviceId(uint8_t bus, uint8_t device, uint8_t function) {
-      return ReadIoConfig(MakeIoAddress(IoBaseAddress, bus, device, function, 0x00)) >> 16;
+      return ReadEcamConfig(MakeEcamAddress(EcamBaseAddress, bus, device, function, 0x00)) >> 16;
   }
 
   uint8_t ReadHeaderType(uint8_t bus, uint8_t device, uint8_t function) {
-    return (ReadIoConfig(MakeIoAddress(IoBaseAddress, bus, device, function, 0x0c)) >> 16) & 0xffu;
+    return (ReadEcamConfig(MakeEcamAddress(EcamBaseAddress, bus, device, function, 0x0c)) >> 16) & 0xffu;
   }
 
   ClassCode ReadClassCode(uint8_t bus, uint8_t device, uint8_t function) {
-    auto reg = ReadIoConfig(MakeIoAddress(IoBaseAddress, bus, device, function, 0x08));
+    auto reg = ReadEcamConfig(MakeEcamAddress(EcamBaseAddress, bus, device, function, 0x08));
     ClassCode cc;
     cc.base       = (reg >> 24) & 0xffu;
     cc.sub        = (reg >> 16) & 0xffu;
@@ -166,7 +165,7 @@ namespace pci {
   }
 
   uint32_t ReadBusNumbers(uint8_t bus, uint8_t device, uint8_t function) {
-    return ReadIoConfig(MakeIoAddress(IoBaseAddress, bus, device, function, 0x18));
+    return ReadIoConfig(MakeIoAddress(EcamBaseAddress, bus, device, function, 0x18));
   }
 
   bool IsSingleFunctionDevice(uint8_t header_type) {
@@ -193,11 +192,11 @@ namespace pci {
   }
 
   uint32_t ReadConfReg(const Device& dev, uint8_t reg_addr) {
-    return ReadIoConfig(MakeIoAddress(IoBaseAddress, dev.bus, dev.device, dev.function, reg_addr));
+    return ReadIoConfig(MakeIoAddress(EcamBaseAddress, dev.bus, dev.device, dev.function, reg_addr));
   }
 
   void WriteConfReg(const Device& dev, uint8_t reg_addr, uint32_t value) {
-    return WriteIoConfig(MakeIoAddress(IoBaseAddress, dev.bus, dev.device, dev.function, reg_addr), value);
+    return WriteIoConfig(MakeIoAddress(EcamBaseAddress, dev.bus, dev.device, dev.function, reg_addr), value);
   }
 
   WithError<uint64_t> ReadBar(Device& device, unsigned int bar_index) {

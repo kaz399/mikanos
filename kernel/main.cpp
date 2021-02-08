@@ -170,14 +170,12 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   uint32_t mmio_value = *mmio_ptr;
   Log(kInfo, "mmio $04x\n", mmio_value);
 
-  while (1) halt();
   Log(kInfo, "create xhc\n");
   // #@@range_begin(init_xhc)
   usb::xhci::Controller xhc{xhc_mmio_base};
   Log(kInfo, "xhc generated\n");
 
-  //if (0x8086 == pci::ReadVendorId(*xhc_dev)) {
-  if (0x1b36 == pci::ReadVendorId(*xhc_dev)) {
+  if (0x8086 == pci::ReadVendorId(*xhc_dev)) {
     Log(kInfo, "SwitchEhci2Xhci\n");
     SwitchEhci2Xhci(*xhc_dev);
   }
