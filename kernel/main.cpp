@@ -165,10 +165,9 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   Log(kInfo, "vid:%x\n", pci::ReadVendorId(*xhc_dev));
   // #@@range_end(read_bar)
 
-  Log(kInfo, "mmio read test\n");
-  uint32_t *mmio_ptr = (uint32_t *)(0x10000000);
-  uint32_t mmio_value = *mmio_ptr;
-  Log(kInfo, "mmio $04x\n", mmio_value);
+  uint32_t command_reg = pci::ReadConfReg(*xhc_dev, 4);
+  Log(kInfo, "command:%x\n", command_reg);
+  pci::WriteConfReg(*xhc_dev, 4, command_reg | 0x02);
 
   Log(kInfo, "create xhc\n");
   // #@@range_begin(init_xhc)

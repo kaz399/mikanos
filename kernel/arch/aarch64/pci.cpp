@@ -165,7 +165,7 @@ namespace pci {
   }
 
   uint32_t ReadBusNumbers(uint8_t bus, uint8_t device, uint8_t function) {
-    return ReadIoConfig(MakeIoAddress(EcamBaseAddress, bus, device, function, 0x18));
+    return ReadEcamConfig(MakeEcamAddress(EcamBaseAddress, bus, device, function, 0x18));
   }
 
   bool IsSingleFunctionDevice(uint8_t header_type) {
@@ -192,11 +192,11 @@ namespace pci {
   }
 
   uint32_t ReadConfReg(const Device& dev, uint8_t reg_addr) {
-    return ReadIoConfig(MakeIoAddress(EcamBaseAddress, dev.bus, dev.device, dev.function, reg_addr));
+    return ReadEcamConfig(MakeEcamAddress(EcamBaseAddress, dev.bus, dev.device, dev.function, reg_addr));
   }
 
   void WriteConfReg(const Device& dev, uint8_t reg_addr, uint32_t value) {
-    return WriteIoConfig(MakeIoAddress(EcamBaseAddress, dev.bus, dev.device, dev.function, reg_addr), value);
+    return WriteEcamConfig(MakeEcamAddress(EcamBaseAddress, dev.bus, dev.device, dev.function, reg_addr), value);
   }
 
   WithError<uint64_t> ReadBar(Device& device, unsigned int bar_index) {
